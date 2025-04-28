@@ -19,6 +19,7 @@ export interface Game {
   released: string;
   background_image: string;
   rating: number;
+  ratings: any[];
   metacritic: number;
   platforms: Platform[];
   genres: Genre[];
@@ -54,9 +55,6 @@ export interface StoreLink {
 }
 
 export interface PlatformRating {
-  platform: {
-    name: string;
-  };
   metascore: number;
 }
 

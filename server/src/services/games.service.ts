@@ -7,7 +7,6 @@ import {
   StoreResponse,
   Store,
   Game,
-  StoreLink,
 } from "../types";
 
 const api = axios.create({
@@ -17,7 +16,6 @@ const api = axios.create({
   },
 });
 
-// Cache for store details
 let storesCache: { [key: number]: Store } = {};
 
 export class GamesService {
@@ -28,29 +26,34 @@ export class GamesService {
         return;
       }
 
-      // Fetch all stores
       const response = await api.get<{ results: Store[] }>("/stores");
 
-      // Create a map of store_id to store details
       storesCache = response.data.results.reduce((acc, store) => {
         acc[store.id] = store;
         return acc;
       }, {} as { [key: number]: Store });
 
-      console.log("Stores cache initialized:", storesCache);
+      console.log("Stores cache initialized");
     } catch (error) {
       console.error("Failed to initialize stores cache:", error);
     }
   }
 
   static async searchGames(params: SearchQueryParams) {
-    const { q: search, ordering, platforms, genres, metacritic } = params;
+    const {
+      q: search,
+      ordering,
+      platforms,
+      genres,
+      metacritic,
+      page,
+      page_size,
+    } = params;
 
     if (!search) {
       throw new Error("Search query is required");
     }
 
-    // Reinitialize stores cache if empty
     if (Object.keys(storesCache).length === 0) {
       await this.initializeStoresCache();
     }
@@ -59,8 +62,8 @@ export class GamesService {
     const response = await api.get<RAWGResponse>("/games", {
       params: {
         search,
-        page: "1",
-        page_size: "10",
+        page,
+        page_size,
         ordering,
         platforms,
         genres,
@@ -70,23 +73,20 @@ export class GamesService {
 
     console.log("Games fetched successfully");
 
-    // For each game in the results, fetch its details and store information
     const gamesWithStores = await Promise.all(
       response.data.results.map(async (game: Game) => {
         try {
-          // Fetch game details
           const detailsResponse = await api.get<DetailedGame>(
             `/games/${game.id}`
           );
 
-          // Fetch store information
           const storesResponse = await api.get<StoreResponse>(
             `/games/${game.id}/stores`
           );
 
-          // Map store data with names from cache
+          console.log("Stores response:", storesResponse.data);
           const stores = storesResponse.data.results
-            .filter((s) => storesCache[s.store_id]) // Only include stores we have info for
+            .filter((s) => storesCache[s.store_id])
             .map((s) => ({
               name: storesCache[s.store_id].name,
               url: s.url,
@@ -97,6 +97,7 @@ export class GamesService {
             name: game.name,
             released: game.released,
             rating: game.rating,
+            ratings: game.ratings,
             metacritic: game.metacritic,
             genres: game.genres.map((g) => g.name),
             platforms: game.platforms.map((p) => p.platform.name),
@@ -132,11 +133,6 @@ export class GamesService {
 
   static async getGameDetails(id: string): Promise<DetailedGame> {
     const response = await api.get<DetailedGame>(`/games/${id}`);
-    return response.data;
-  }
-
-  static async getGameStores(id: string): Promise<StoreResponse> {
-    const response = await api.get<StoreResponse>(`/games/${id}/stores`);
     return response.data;
   }
 }

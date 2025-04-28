@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { gameApi, type Game, type SearchParams } from "../services/api";
+import { GameResults } from "./GameResults";
+
+const DEFAULT_PAGE_SIZE = "5";
 
 export function GameSearch() {
   const [query, setQuery] = useState("");
@@ -16,7 +19,7 @@ export function GameSearch() {
     try {
       const params: SearchParams = {
         q: query,
-        page_size: "10",
+        page_size: DEFAULT_PAGE_SIZE,
       };
       const response = await gameApi.search(params);
       setGames(response.games);
@@ -31,7 +34,7 @@ export function GameSearch() {
   return (
     <div className="max-w-4xl mx-auto p-4 text-black">
       <div className="relative w-full mb-6">
-        <div className="flex gap-2 ">
+        <div className="flex gap-2">
           <input
             type="text"
             value={query}
@@ -49,50 +52,8 @@ export function GameSearch() {
           </button>
         </div>
       </div>
-
       {error && <div className="text-red-500 mb-4">{error}</div>}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {games.map((game) => (
-          <div key={game.id} className="border rounded p-4 bg-white shadow-sm">
-            <h2 className="text-xl font-bold mb-2">{game.name}</h2>
-            <div className="text-sm text-gray-600 mb-2">
-              Released: {game.released}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Metacritic:</span>{" "}
-              {game.metacritic}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Genres:</span>{" "}
-              {game.genres.join(", ")}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Platforms:</span>{" "}
-              {game.platforms.join(", ")}
-            </div>
-            {game.stores.length > 0 && (
-              <div>
-                <span className="font-semibold">Available at:</span>
-                <ul className="list-disc list-inside">
-                  {game.stores.map((store, index) => (
-                    <li key={index}>
-                      <a
-                        href={store.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        {store.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <GameResults games={games} />
     </div>
   );
 }
