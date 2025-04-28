@@ -1,167 +1,98 @@
 import { useState } from "react";
+import { gameApi, type Game, type SearchParams } from "../services/api";
 
-interface Store {
-  name: string;
-  url: string;
-}
-
-interface PlatformRating {
-  platform: {
-    name: string;
-  };
-  metascore: number;
-}
-
-interface Game {
-  id: number;
-  name: string;
-  released: string;
-  rating: number;
-  metacritic: number;
-  genres: string[];
-  platforms: string[];
-  stores: Store[];
-  platform_ratings: PlatformRating[];
-  playtime: number;
-  website: string;
-}
-
-interface SearchResponse {
-  games: Game[];
-  count: number;
-}
-
-const GameSearch = () => {
+export function GameSearch() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
 
-    setIsLoading(true);
+    setLoading(true);
+    setError(null);
+
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/search?q=${encodeURIComponent(query)}`
-      );
-      const data: SearchResponse = await response.json();
-      setResults(data.games);
-    } catch (error) {
-      console.error("Search failed:", error);
+      const params: SearchParams = {
+        q: query,
+        page_size: "10",
+      };
+      const response = await gameApi.search(params);
+      setGames(response.games);
+    } catch (err) {
+      setError("Failed to search games. Please try again.");
+      console.error("Search error:", err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="w-full">
-      <div className="relative max-w-6xl mx-auto">
-        <input
-          type="text"
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm text-gray-900 placeholder:text-gray-400"
-          placeholder="Search for games..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-        />
-        <button
-          className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors ${
-            isLoading ? "opacity-75 cursor-not-allowed" : ""
-          }`}
-          onClick={handleSearch}
-          disabled={isLoading}
-        >
-          {isLoading ? "Searching..." : "Search"}
-        </button>
+    <div className="max-w-4xl mx-auto p-4 text-black">
+      <div className="relative w-full mb-6">
+        <div className="flex gap-2 ">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Search for games..."
+            className="w-full p-3 border border-gray-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            className="px-6 py-3 bg-blue-500 text-white rounded shadow-sm hover:bg-blue-600 disabled:bg-blue-300 whitespace-nowrap"
+          >
+            {loading ? "Searching..." : "Search"}
+          </button>
+        </div>
       </div>
 
-      <div className="mt-8 max-w-4xl mx-auto px-4">
-        {results.map((game) => (
-          <div
-            key={game.id}
-            className="bg-white rounded-lg shadow-md p-6 mb-4 hover:shadow-lg transition-shadow"
-          >
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {game.name}
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Released: {game.released}
-                </p>
-                {game.website && (
-                  <a
-                    href={game.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:text-blue-800 mt-1 block"
-                  >
-                    Official Website
-                  </a>
-                )}
-              </div>
+      {error && <div className="text-red-500 mb-4">{error}</div>}
 
-              <div className="flex flex-wrap gap-4">
-                <div className="flex-1 min-w-[200px]">
-                  <h4 className="font-medium text-gray-900 mb-2">
-                    Ratings & Stats
-                  </h4>
-                  <div className="space-y-1">
-                    <p className="text-sm">RAWG Rating: {game.rating}/5</p>
-                    {game.metacritic && (
-                      <p className="text-sm">Metacritic: {game.metacritic}</p>
-                    )}
-                    {game.platform_ratings.map((pr) => (
-                      <p key={pr.platform.name} className="text-sm">
-                        {pr.platform.name}: {pr.metascore}
-                      </p>
-                    ))}
-                    {game.playtime > 0 && (
-                      <p className="text-sm mt-2">
-                        Average Playtime: {game.playtime} hours
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {game.stores.length > 0 && (
-                  <div className="flex-1 min-w-[200px]">
-                    <h4 className="font-medium text-gray-900 mb-2">
-                      Available On
-                    </h4>
-                    <div className="space-y-1">
-                      {game.stores.map((store) => (
-                        <a
-                          key={store.url}
-                          href={store.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-sm text-blue-600 hover:text-blue-800"
-                        >
-                          {store.name}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-sm">
-                <p className="text-gray-600">
-                  <span className="font-medium">Genres:</span>{" "}
-                  {game.genres.join(", ")}
-                </p>
-                <p className="text-gray-600">
-                  <span className="font-medium">Platforms:</span>{" "}
-                  {game.platforms.join(", ")}
-                </p>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {games.map((game) => (
+          <div key={game.id} className="border rounded p-4 bg-white shadow-sm">
+            <h2 className="text-xl font-bold mb-2">{game.name}</h2>
+            <div className="text-sm text-gray-600 mb-2">
+              Released: {game.released}
             </div>
+            <div className="mb-2">
+              <span className="font-semibold">Metacritic:</span>{" "}
+              {game.metacritic}
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Genres:</span>{" "}
+              {game.genres.join(", ")}
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Platforms:</span>{" "}
+              {game.platforms.join(", ")}
+            </div>
+            {game.stores.length > 0 && (
+              <div>
+                <span className="font-semibold">Available at:</span>
+                <ul className="list-disc list-inside">
+                  {game.stores.map((store, index) => (
+                    <li key={index}>
+                      <a
+                        href={store.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {store.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
-};
-
-export default GameSearch;
+}
