@@ -30,4 +30,25 @@ router.get("/search", async (req, res) => {
   }
 });
 
+router.get("/game-info", async (req, res) => {
+  const { url, store } = req.query;
+  if (!url || typeof url !== "string") {
+    res.status(400).json({ error: "Missing or invalid url parameter" });
+    return;
+  }
+  if (!store || typeof store !== "string") {
+    res.status(400).json({ error: "Missing or invalid store parameter" });
+    return;
+  }
+
+  try {
+    const info = await GamesService.getGameInfo(store, url);
+    res.json(info);
+  } catch (error: any) {
+    res
+      .status(400)
+      .json({ error: error.message || "Failed to fetch game info" });
+  }
+});
+
 export default router;

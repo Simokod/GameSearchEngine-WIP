@@ -18,6 +18,8 @@ const api = axios.create({
 
 let storesCache: { [key: number]: Store } = {};
 
+export const STORE_GOG = "gog";
+
 export class GamesService {
   static async initializeStoresCache() {
     try {
@@ -131,8 +133,16 @@ export class GamesService {
     };
   }
 
-  static async getGameDetails(id: string): Promise<DetailedGame> {
-    const response = await api.get<DetailedGame>(`/games/${id}`);
-    return response.data;
+  static async getGameInfo(store: string, url: string) {
+    switch (store) {
+      case STORE_GOG:
+        if (!url.includes("gog.com")) {
+          throw new Error("URL does not match GOG store");
+        }
+        return { rating: 4.3, votes: 1234 };
+
+      default:
+        throw new Error(`Store '${store}' not supported yet`);
+    }
   }
 }

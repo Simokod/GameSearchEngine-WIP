@@ -56,6 +56,12 @@ export interface SearchParams {
 export const gameApi = {
   search: async (params: SearchParams): Promise<SearchResponse> => {
     const response = await api.get("/games/search", { params });
+    return response.data as SearchResponse;
+  },
+  getGameInfo: async (store: string, url: string) => {
+    const response = await api.get("/games/game-info", {
+      params: { store, url },
+    });
     return response.data;
   },
 };
