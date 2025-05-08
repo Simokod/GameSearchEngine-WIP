@@ -1,20 +1,21 @@
 import axios from "axios";
-import { config } from "../config";
+import { config } from "../../config";
 import {
   RAWGResponse,
   DetailedGame,
   StoreResponse,
   Store,
   SearchQueryParams,
-} from "../types";
+} from "../../types";
 
 export class RawgApiClient {
+  private baseUrl = "https://api.rawg.io/api";
   private api: Axios.AxiosInstance;
   private storesCache: { [key: number]: Store } = {};
 
   constructor() {
     this.api = axios.create({
-      baseURL: config.rawgBaseUrl,
+      baseURL: this.baseUrl,
       params: {
         key: config.rawgApiKey,
       },

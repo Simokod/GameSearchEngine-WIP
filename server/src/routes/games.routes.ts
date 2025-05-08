@@ -4,7 +4,6 @@ import { gamesService } from "../services/games.service";
 
 const router = Router();
 
-
 router.get("/search", async (req, res) => {
   try {
     console.log("Search query:", req.query);

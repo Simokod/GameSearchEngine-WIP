@@ -1,9 +1,12 @@
-import { SearchQueryParams, Store, Game } from "../types";
+import { SearchQueryParams, Game } from "../types";
 import { STORE_NAMES, StoreName } from "../constants";
-import { RawgApiClient } from "./rawgApi";
+import { RawgApiClient } from "./clients/rawgApi";
+import { SteamSpyApiClient } from "./clients/steamspyApi";
 
 class GamesService {
   rawgApiClient = new RawgApiClient();
+  steamSpyApiClient = new SteamSpyApiClient();
+
   async initializeStoresCache() {
     await this.rawgApiClient.initializeStoresCache();
   }
@@ -73,6 +76,7 @@ class GamesService {
   }
 
   async getGameInfo(store: StoreName, url: string) {
+    console.log("Game info query:", { store, url });
     switch (store) {
       case STORE_NAMES.GOG:
         if (!url.includes("gog.com")) {
@@ -84,7 +88,17 @@ class GamesService {
         if (!url.includes("store.steampowered.com")) {
           throw new Error("URL does not match Steam store");
         }
-        return { rating: 3.4, votes: 4321 };
+
+        const gameInfo = await this.steamSpyApiClient.getGameInfo(url);
+        return {
+          rating: Number(
+            (
+              (gameInfo.positive / (gameInfo.positive + gameInfo.negative)) *
+              100
+            ).toFixed(2)
+          ),
+          votes: gameInfo.positive + gameInfo.negative,
+        };
 
       default:
         throw new Error(`Store '${store}' not supported yet`);

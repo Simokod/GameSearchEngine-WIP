@@ -22,7 +22,7 @@ const StoreInfo = ({
         <span className="text-red-500">Failed to fetch rating.</span>
       ) : (
         <span>
-          User Rating: <span className="font-semibold">{info.rating}</span> / 5
+          User Rating: <span className="font-semibold">{info.rating}</span>
           {info.votes > 0 && (
             <span className="ml-2 text-gray-500">({info.votes} votes)</span>
           )}
