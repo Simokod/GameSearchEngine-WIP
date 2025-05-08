@@ -1,4 +1,5 @@
 import axios from "axios";
+import { StoreInfo } from "../components/GameCard/GameStoreInfo";
 
 const api = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -58,10 +59,10 @@ export const gameApi = {
     const response = await api.get("/games/search", { params });
     return response.data as SearchResponse;
   },
-  getGameInfo: async (store: string, url: string) => {
+  getGameInfo: async (store: string, url: string): Promise<StoreInfo> => {
     const response = await api.get("/games/game-info", {
       params: { store, url },
     });
-    return response.data;
+    return response.data as StoreInfo;
   },
 };

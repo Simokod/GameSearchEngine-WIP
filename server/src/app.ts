@@ -5,7 +5,6 @@ import gamesRoutes from "./routes/games.routes";
 
 const app = express();
 
-// Middleware
 app.use(
   cors({
     origin: config.corsOrigin,
@@ -14,15 +13,12 @@ app.use(
 );
 app.use(express.json());
 
-// Routes
 app.use("/api/games", gamesRoutes);
 
-// Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Error handling middleware
 app.use(
   (
     err: Error,
@@ -35,7 +31,6 @@ app.use(
   }
 );
 
-// Start server
 app.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
 });

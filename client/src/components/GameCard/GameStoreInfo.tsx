@@ -3,7 +3,7 @@ import { gameApi } from "../../services/api";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import clsx from "clsx";
 
-interface StoreInfo {
+export interface StoreInfo {
   rating: number;
   votes: number;
 }
@@ -52,10 +52,10 @@ export const GameStoreInfo = ({
       const results = await Promise.all(
         stores.map(async (storeObj) => {
           try {
-            const data = (await gameApi.getGameInfo(
+            const data = await gameApi.getGameInfo(
               storeObj.name.toLowerCase(),
               storeObj.url
-            )) as StoreInfo;
+            );
             return { store: storeObj.name, data };
           } catch {
             return { store: storeObj.name, data: { rating: -1, votes: 0 } };

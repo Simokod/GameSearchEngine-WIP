@@ -1,10 +1,9 @@
 import { Router } from "express";
-import { GamesService } from "../services/games.service";
 import { config } from "../config";
+import { gamesService } from "../services/games.service";
 
 const router = Router();
 
-GamesService.initializeStoresCache();
 
 router.get("/search", async (req, res) => {
   try {
@@ -22,7 +21,7 @@ router.get("/search", async (req, res) => {
       return;
     }
 
-    const result = await GamesService.searchGames(req.query);
+    const result = await gamesService.searchGames(req.query);
     res.json(result);
   } catch (error) {
     console.error("Search error:", error);
@@ -42,7 +41,7 @@ router.get("/game-info", async (req, res) => {
   }
 
   try {
-    const info = await GamesService.getGameInfo(store, url);
+    const info = await gamesService.getGameInfo(store, url);
     res.json(info);
   } catch (error: any) {
     res

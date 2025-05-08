@@ -1,96 +1,35 @@
-import axios from "axios";
-import { config } from "../config";
-import {
-  RAWGResponse,
-  SearchQueryParams,
-  DetailedGame,
-  StoreResponse,
-  Store,
-  Game,
-} from "../types";
+import { SearchQueryParams, Store, Game } from "../types";
+import { STORE_NAMES, StoreName } from "../constants";
+import { RawgApiClient } from "./rawgApi";
 
-const api = axios.create({
-  baseURL: config.rawgBaseUrl,
-  params: {
-    key: config.rawgApiKey,
-  },
-});
-
-let storesCache: { [key: number]: Store } = {};
-
-export const STORE_GOG = "gog";
-
-export class GamesService {
-  static async initializeStoresCache() {
-    try {
-      if (!config.rawgApiKey) {
-        console.error("RAWG API key not configured");
-        return;
-      }
-
-      const response = await api.get<{ results: Store[] }>("/stores");
-
-      storesCache = response.data.results.reduce((acc, store) => {
-        acc[store.id] = store;
-        return acc;
-      }, {} as { [key: number]: Store });
-
-      console.log("Stores cache initialized");
-    } catch (error) {
-      console.error("Failed to initialize stores cache:", error);
-    }
+class GamesService {
+  rawgApiClient = new RawgApiClient();
+  async initializeStoresCache() {
+    await this.rawgApiClient.initializeStoresCache();
   }
 
-  static async searchGames(params: SearchQueryParams) {
-    const {
-      q: search,
-      ordering,
-      platforms,
-      genres,
-      metacritic,
-      page,
-      page_size,
-    } = params;
+  async searchGames(params: SearchQueryParams) {
+    const { q: search } = params;
 
     if (!search) {
       throw new Error("Search query is required");
     }
 
-    if (Object.keys(storesCache).length === 0) {
-      await this.initializeStoresCache();
-    }
-
-    console.log("Fetching games from RAWG API");
-    const response = await api.get<RAWGResponse>("/games", {
-      params: {
-        search,
-        page,
-        page_size,
-        ordering,
-        platforms,
-        genres,
-        metacritic,
-      },
-    });
-
-    console.log("Games fetched successfully");
-
+    const searchResponse = await this.rawgApiClient.searchGames(params);
     const gamesWithStores = await Promise.all(
-      response.data.results.map(async (game: Game) => {
+      searchResponse.results.map(async (game: Game) => {
         try {
-          const detailsResponse = await api.get<DetailedGame>(
-            `/games/${game.id}`
+          const detailsResponse = await this.rawgApiClient.getGameDetails(
+            game.id
+          );
+          const storesResponse = await this.rawgApiClient.getGameStores(
+            game.id
           );
 
-          const storesResponse = await api.get<StoreResponse>(
-            `/games/${game.id}/stores`
-          );
-
-          console.log("Stores response:", storesResponse.data);
-          const stores = storesResponse.data.results
-            .filter((s) => storesCache[s.store_id])
+          const stores = storesResponse.results
+            .filter((s) => this.rawgApiClient.getStoreName(s.store_id))
             .map((s) => ({
-              name: storesCache[s.store_id].name,
+              name: this.rawgApiClient.getStoreName(s.store_id),
               url: s.url,
             }));
 
@@ -104,9 +43,9 @@ export class GamesService {
             genres: game.genres.map((g) => g.name),
             platforms: game.platforms.map((p) => p.platform.name),
             stores,
-            platform_ratings: detailsResponse.data.metacritic_platforms,
-            playtime: detailsResponse.data.playtime,
-            website: detailsResponse.data.website || "",
+            platform_ratings: detailsResponse.metacritic_platforms,
+            playtime: detailsResponse.playtime,
+            website: detailsResponse.website || "",
           };
         } catch (error) {
           console.error(`Failed to fetch details for game ${game.id}:`, error);
@@ -129,20 +68,28 @@ export class GamesService {
 
     return {
       games: gamesWithStores,
-      count: response.data.count,
+      count: searchResponse.count,
     };
   }
 
-  static async getGameInfo(store: string, url: string) {
+  async getGameInfo(store: StoreName, url: string) {
     switch (store) {
-      case STORE_GOG:
+      case STORE_NAMES.GOG:
         if (!url.includes("gog.com")) {
           throw new Error("URL does not match GOG store");
         }
         return { rating: 4.3, votes: 1234 };
+
+      case STORE_NAMES.STEAM:
+        if (!url.includes("store.steampowered.com")) {
+          throw new Error("URL does not match Steam store");
+        }
+        return { rating: 3.4, votes: 4321 };
 
       default:
         throw new Error(`Store '${store}' not supported yet`);
     }
   }
 }
+
+export const gamesService = new GamesService();
