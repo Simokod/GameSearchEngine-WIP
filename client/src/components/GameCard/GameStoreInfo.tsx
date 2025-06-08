@@ -1,35 +1,45 @@
 import { useState } from "react";
 import { gameApi } from "../../services/api";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import clsx from "clsx";
+import { AlertCircle } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ScoreBadge } from "../Ratings/ScoreBadge";
 
 export interface StoreInfo {
   rating: number;
   votes: number;
 }
 
-const StoreInfo = ({
+const StoreInfoItem = ({
   store,
   info,
 }: {
   store: string;
   info: StoreInfo | null;
 }) => (
-  <div key={store} className="text-sm">
-    <span className="font-semibold">{store}:</span>{" "}
+  <div className="flex flex-col space-y-1 border-b border-border last:border-0 transition-colors hover:bg-accent/40 px-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:gap-2">
+    <span className="font-medium text-foreground py-2 sm:py-3">{store}</span>
     {info ? (
       info.rating === -1 ? (
-        <span className="text-red-500">Failed to fetch rating.</span>
-      ) : (
-        <span>
-          User Rating: <span className="font-semibold">{info.rating}</span>
-          {info.votes > 0 && (
-            <span className="ml-2 text-gray-500">({info.votes} votes)</span>
-          )}
+        <span className="flex items-center gap-1 text-xs text-destructive/80 font-medium sm:text-sm">
+          <AlertCircle className="w-4 h-4" /> Failed to fetch
         </span>
+      ) : (
+        <div className="flex items-center">
+          <ScoreBadge score={info.rating} />
+          <span className="text-xs text-muted-foreground ml-2">
+            {info.votes.toLocaleString()} vote{info.votes === 1 ? "" : "s"}
+          </span>
+        </div>
       )
     ) : (
-      <span>Loading...</span>
+      <Skeleton className="h-5 w-12" />
     )}
   </div>
 );
@@ -40,13 +50,12 @@ export const GameStoreInfo = ({
   stores: { name: string; url: string }[];
 }) => {
   const [info, setInfo] = useState<Record<string, StoreInfo | null>>({});
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
 
   const fetchAllInfo = async () => {
-    setLoading(true);
+    if (hasFetched) return;
+
     setError(null);
     try {
       const results = await Promise.all(
@@ -69,53 +78,50 @@ export const GameStoreInfo = ({
       setInfo(infoObj);
       setHasFetched(true);
     } catch (e) {
-      setError("Failed to fetch store info.");
-    } finally {
-      setLoading(false);
+      setError("Failed to fetch store information.");
     }
   };
 
   if (!stores.length) return null;
 
-  const handleToggle = async () => {
-    if (!expanded && !hasFetched) {
-      await fetchAllInfo();
-    }
-    setExpanded((prev) => !prev);
-  };
-
   return (
-    <div className="mt-4 space-y-2">
-      <button
-        className={clsx(
-          "w-8 h-8 flex items-center justify-center p-0 rounded-full",
-          "text-white !bg-blue-500 !outline-none",
-          expanded && "rotate-180"
-        )}
-        onClick={handleToggle}
-        disabled={loading}
-      >
-        <ExpandMoreIcon fontSize="small" />
-      </button>
-      {expanded && (
-        <>
-          {loading && <div className="text-sm text-gray-500">Loading...</div>}
-          {error && <div className="text-red-500 mt-2">{error}</div>}
-          <div className="mt-2 space-y-1">
-            {stores.map((storeObj) => {
-              const store = storeObj.name.toLowerCase();
-              const curStoreInfo = info[store];
-              return (
-                <StoreInfo
-                  key={store}
-                  store={storeObj.name}
-                  info={curStoreInfo}
-                />
-              );
-            })}
-          </div>
-        </>
-      )}
-    </div>
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full mt-4 border border-border bg-card rounded-lg"
+    >
+      <AccordionItem value="store-info">
+        <AccordionTrigger
+          className="p-4 rounded-t-lg border-b border-border bg-card"
+          onClick={() => !hasFetched && fetchAllInfo()}
+        >
+          <span className="font-semibold underline">Store Ratings</span>
+        </AccordionTrigger>
+        <AccordionContent>
+          {error ? (
+            <Alert variant="destructive" className="mx-4 mt-4">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="bg-card overflow-hidden rounded-b-lg">
+              {stores.map((storeObj) => {
+                const store = storeObj.name.toLowerCase();
+                const curStoreInfo = info[store];
+                return (
+                  <StoreInfoItem
+                    key={store}
+                    store={storeObj.name}
+                    info={curStoreInfo}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
+
+export default GameStoreInfo;
