@@ -52,10 +52,12 @@ export const GameStoreInfo = ({
   const [info, setInfo] = useState<Record<string, StoreInfo | null>>({});
   const [error, setError] = useState<string | null>(null);
   const [hasFetched, setHasFetched] = useState(false);
+  const [fetching, setFetching] = useState(false);
 
   const fetchAllInfo = async () => {
-    if (hasFetched) return;
-
+    if (hasFetched || fetching) return;
+    setFetching(true);
+    setHasFetched(true);
     setError(null);
     try {
       const results = await Promise.all(
@@ -76,9 +78,10 @@ export const GameStoreInfo = ({
         infoObj[store.toLowerCase()] = data;
       });
       setInfo(infoObj);
-      setHasFetched(true);
     } catch (e) {
       setError("Failed to fetch store information.");
+    } finally {
+      setFetching(false);
     }
   };
 
