@@ -1,8 +1,9 @@
 import axios from "axios";
 import { StoreInfo } from "../components/GameCard/GameStoreInfo";
+import { envConfig } from "../lib/env";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: envConfig.apiBaseUrl,
 });
 
 export interface PlatformRating {
