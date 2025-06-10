@@ -2,6 +2,8 @@ import { Game } from "../../services/api";
 import { GameStoreInfo } from "./GameStoreInfo";
 import { MetacriticScore } from "../Ratings/MetacriticRatings";
 import { RatingsPopover } from "../Ratings/RatingsPopover";
+import { GenreBadges } from "./GenreBadges";
+import { PlatformIcons } from "./PlatformIcons";
 
 const GameStores = ({ stores }: { stores: Game["stores"] }) => (
   <div>
@@ -65,11 +67,11 @@ const GenresAndPlatforms = ({
   <div className="grid grid-cols-2">
     <div>
       <span className="font-semibold">Genres:</span>{" "}
-      <span className="text-gray-600">{genres.join(", ")}</span>
+      <GenreBadges genres={genres} />
     </div>
     <div>
       <span className="font-semibold">Platforms:</span>{" "}
-      <span className="text-gray-600">{platforms.join(", ")}</span>
+      <PlatformIcons platforms={platforms} />
     </div>
   </div>
 );
