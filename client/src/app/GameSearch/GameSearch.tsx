@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { gameApi, type Game, type SearchParams } from "../services/api";
-import { GameResults } from "./GameResults";
+import { gameApi, type Game, type SearchParams } from "../../services/api";
+import { GameResults } from "../GameResults/GameResults";
 
 const DEFAULT_PAGE_SIZE = "5";
 

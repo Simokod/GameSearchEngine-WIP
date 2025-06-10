@@ -23,7 +23,7 @@ const genreColorMap: Record<string, string> = {
   Educational: "bg-sky-100 text-sky-800",
 };
 
-function GenreBadge({ genre }: { genre: string }) {
+export function GenreBadge({ genre }: { genre: string }) {
   return (
     <Badge
       className={cn(
@@ -35,11 +35,3 @@ function GenreBadge({ genre }: { genre: string }) {
     </Badge>
   );
 }
-
-export const GenreBadges = ({ genres }: { genres: string[] }) => (
-  <span className="flex flex-wrap gap-1 mt-1">
-    {genres.map((genre) => (
-      <GenreBadge key={genre} genre={genre} />
-    ))}
-  </span>
-);
