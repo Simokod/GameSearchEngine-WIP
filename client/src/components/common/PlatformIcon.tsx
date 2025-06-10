@@ -7,7 +7,10 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-const platformIconMap: Record<string, { icon: JSX.Element; label: string }> = {
+export const platformIconMap: Record<
+  string,
+  { icon: JSX.Element; label: string }
+> = {
   PC: { icon: <FaDesktop size={22} className="text-gray-700" />, label: "PC" },
   PlayStation: {
     icon: <SiPlaystation size={22} className="text-blue-700" />,
@@ -31,21 +34,7 @@ const platformIconMap: Record<string, { icon: JSX.Element; label: string }> = {
   },
 };
 
-function groupPlatforms(platforms: string[]) {
-  const groups: Record<string, string[]> = {};
-  platforms.forEach((platform) => {
-    const key = Object.keys(platformIconMap).find((k) =>
-      platform.toLowerCase().includes(k.toLowerCase())
-    );
-    if (key) {
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(platform);
-    }
-  });
-  return groups;
-}
-
-function PlatformIcon({
+export function PlatformIcon({
   platformKey,
   subPlatforms,
 }: {
@@ -66,15 +55,3 @@ function PlatformIcon({
     </Tooltip>
   );
 }
-
-export const PlatformIcons = ({ platforms }: { platforms: string[] }) => {
-  const groups = groupPlatforms(platforms);
-
-  return (
-    <span className="flex flex-row gap-2 items-center mt-1">
-      {Object.entries(groups).map(([key, subPlatforms]) => (
-        <PlatformIcon key={key} platformKey={key} subPlatforms={subPlatforms} />
-      ))}
-    </span>
-  );
-};

@@ -1,4 +1,4 @@
-import { GameSearch } from "./components/GameSearch";
+import { GameSearch } from "./app/GameSearch/GameSearch";
 
 function App() {
   return (
