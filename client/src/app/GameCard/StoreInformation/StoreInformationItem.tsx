@@ -1,4 +1,4 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ExternalLink } from "lucide-react";
 import { StoreRatingInfo } from "@/types/store";
 import Rating from "./Rating";
 
@@ -29,10 +29,22 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex justify-between items-center gap-3 mb-2">
             <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
               {store.name}
             </h4>
+            <a
+              href={store.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Open ${store.name} page in a new tab`}
+              className="ml-1 text-muted-foreground hover:text-primary transition-colors"
+              tabIndex={0}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="w-4 h-4 align-middle" />
+            </a>
           </div>
           <div className="flex items-center gap-4 text-sm">
             {isError ? (
