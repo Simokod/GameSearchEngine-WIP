@@ -1,6 +1,6 @@
 import axios from "axios";
-import { StoreInfo } from "../app/GameCard/GameStoreInfo";
 import { envConfig } from "../lib/env";
+import { StoreRatingInfo } from "@/types/store";
 
 const api = axios.create({
   baseURL: envConfig.apiBaseUrl,
@@ -60,10 +60,10 @@ export const gameApi = {
     const response = await api.get("/games/search", { params });
     return response.data as SearchResponse;
   },
-  getGameInfo: async (store: string, url: string): Promise<StoreInfo> => {
+  getGameInfo: async (store: string, url: string): Promise<StoreRatingInfo> => {
     const response = await api.get("/games/game-info", {
       params: { store, url },
     });
-    return response.data as StoreInfo;
+    return response.data as StoreRatingInfo;
   },
 };
