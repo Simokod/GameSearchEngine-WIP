@@ -1,5 +1,5 @@
 import axios from "axios";
-import { StoreInfo } from "../components/GameCard/GameStoreInfo";
+import { StoreInfo } from "../app/GameCard/GameStoreInfo";
 import { envConfig } from "../lib/env";
 
 const api = axios.create({
