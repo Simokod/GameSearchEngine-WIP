@@ -1,7 +1,5 @@
 import { Game } from "../../services/api";
 import { GameStoreInfo } from "./GameStoreInfo";
-import { MetacriticScore } from "../Ratings/MetacriticRatings";
-import { RatingsPopover } from "../Ratings/RatingsPopover";
 import { GenreBadges } from "./GenreBadges";
 import { PlatformIcons } from "./PlatformIcons";
 
@@ -29,12 +27,10 @@ const TitleAndWebsite = ({
   name,
   website,
   released,
-  metacritic,
 }: {
   name: string;
   website: string;
   released: string;
-  metacritic: number;
 }) => (
   <div className="flex justify-between items-start mb-2 gap-x-2">
     <div className="w-full">
@@ -53,7 +49,6 @@ const TitleAndWebsite = ({
         <span className="text-sm text-gray-600"> - Released: {released}</span>
       </div>
     </div>
-    <MetacriticScore score={metacritic} />
   </div>
 );
 
@@ -85,7 +80,6 @@ export const GameCard = ({ game }: { game: Game }) => {
             name={game.name}
             website={game.website}
             released={game.released}
-            metacritic={game.metacritic}
           />
           <GenresAndPlatforms genres={game.genres} platforms={game.platforms} />
           <GameStoreInfo stores={game.stores} />
@@ -95,7 +89,6 @@ export const GameCard = ({ game }: { game: Game }) => {
           <GameStores stores={game.stores} />
         </div>
       </div>
-      <RatingsPopover game={game} />
     </div>
   );
 };
