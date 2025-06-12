@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import DOMPurify from "dompurify";
 import { Game } from "../../services/api";
 import { GenreBadges } from "./GenreBadges";
 import { PlatformIcons } from "./PlatformIcons";
@@ -71,7 +72,12 @@ export const GameCard = ({ game }: { game: Game }) => {
             website={game.website}
             released={game.released}
           />
-          <div className="text-sm text-gray-600">{game.description}</div>
+          <div
+            className="text-sm text-gray-600"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(game.description),
+            }}
+          />
           <GenresAndPlatforms genres={game.genres} platforms={game.platforms} />
           <StoreInformation stores={mappedStores} />
         </div>
