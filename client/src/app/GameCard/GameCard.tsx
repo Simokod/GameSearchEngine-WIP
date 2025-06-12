@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Game } from "../../services/api";
 import { GenreBadges } from "./GenreBadges";
 import { PlatformIcons } from "./PlatformIcons";
@@ -52,11 +53,15 @@ const GenresAndPlatforms = ({
 );
 
 export const GameCard = ({ game }: { game: Game }) => {
-  const mappedStores = game.stores.map((store, idx) => ({
-    id: String(idx),
-    name: store.name,
-    url: store.url,
-  }));
+  const mappedStores = useMemo(
+    () =>
+      game.stores.map((store, idx) => ({
+        id: String(idx),
+        name: store.name,
+        url: store.url,
+      })),
+    [game.stores]
+  );
   return (
     <div className="group relative border rounded p-4 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className="flex">
