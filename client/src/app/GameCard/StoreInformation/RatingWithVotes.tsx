@@ -12,6 +12,8 @@ const Rating: React.FC<RatingProps> = ({
   rating: number;
   maxRating: number;
 }) => {
+  if (!rating) return null;
+
   return (
     <div className="flex items-center gap-1">
       <div className="flex items-center">
@@ -36,3 +38,24 @@ const Rating: React.FC<RatingProps> = ({
 };
 
 export default Rating;
+
+interface RatingWithVotesProps {
+  rating: number;
+  maxRating: number;
+  votes?: number;
+}
+
+export const RatingWithVotes: React.FC<RatingWithVotesProps> = ({
+  rating,
+  maxRating,
+  votes,
+}) => (
+  <div className="flex items-center gap-2">
+    <Rating rating={rating} maxRating={maxRating} />
+    {typeof votes === "number" && votes > 0 && (
+      <span className="text-xs text-muted-foreground ml-1">
+        {votes.toLocaleString()} vote{votes === 1 ? "" : "s"}
+      </span>
+    )}
+  </div>
+);
