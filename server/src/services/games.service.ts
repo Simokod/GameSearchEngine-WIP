@@ -18,7 +18,9 @@ class GamesService {
       throw new Error("Search query is required");
     }
 
+    console.log("Games search query:", search);
     const searchResponse = await this.rawgApiClient.searchGames(params);
+    console.log("Games search response:", searchResponse);
     const gamesWithStores = await Promise.all(
       searchResponse.results.map(async (game: Game) => {
         try {
@@ -49,6 +51,7 @@ class GamesService {
             platform_ratings: detailsResponse.metacritic_platforms,
             playtime: detailsResponse.playtime,
             website: detailsResponse.website || "",
+            description: detailsResponse.description || "",
           };
         } catch (error) {
           console.error(`Failed to fetch details for game ${game.id}:`, error);

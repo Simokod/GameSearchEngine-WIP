@@ -38,6 +38,7 @@ export interface Game {
   platform_ratings: PlatformRating[];
   playtime: number;
   website: string;
+  description: string;
 }
 
 export interface SearchResponse {
@@ -48,7 +49,7 @@ export interface SearchResponse {
 export interface SearchParams {
   q?: string;
   page?: string;
-  page_size?: string;
+  page_size?: number;
   ordering?: string;
   platforms?: string;
   genres?: string;

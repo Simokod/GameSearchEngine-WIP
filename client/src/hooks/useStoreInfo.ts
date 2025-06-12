@@ -42,6 +42,7 @@ export function useStoreInfo(stores: Store[]) {
               MAX_RETRIES
             );
             if (error) {
+              console.error("Failed to fetch store information.", error);
               return {
                 store: storeObj.name,
                 data: null,
