@@ -3,7 +3,6 @@ import { gameApi, type Game, type SearchParams } from "../../services/api";
 import { GameResults } from "../GameResults/GameResults";
 
 const DEFAULT_PAGE_SIZE = 5;
-const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 export function GameSearch() {
   const [query, setQuery] = useState("");

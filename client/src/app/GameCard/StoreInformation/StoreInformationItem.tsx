@@ -1,16 +1,7 @@
 import { AlertCircle, ExternalLink } from "lucide-react";
-import { StoreRatingInfo } from "@/types/store";
-import Rating from "./Rating";
-
-interface Store {
-  id: string;
-  name: string;
-  url: string;
-  rating?: number;
-  maxRating?: number;
-  price?: string;
-  logo?: string;
-}
+import { Store, StoreRatingInfo } from "@/types/store";
+import { RatingWithVotes } from "./RatingWithVotes";
+import { PriceDisplay } from "@/components/common/PriceDisplay";
 
 interface StoreInfoItemProps {
   store: Store;
@@ -27,14 +18,14 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center gap-3 mb-2">
+          <div className="flex justify-between items-center gap-3">
             <div className="flex items-center gap-2">
               <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
                 {store.name}
               </h4>
               {storeInfo?.price && (
                 <span className="font-semibold text-green-700">
-                  {`$${(parseInt(storeInfo.price, 10) / 100).toFixed(2)}`}
+                  <PriceDisplay price={storeInfo.price} />
                 </span>
               )}
             </div>
@@ -54,15 +45,11 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
           <div className="flex items-center gap-4 text-sm">
             {storeInfo ? (
               <>
-                {storeInfo && (
-                  <Rating rating={storeInfo.rating} maxRating={5} />
-                )}
-                {storeInfo && storeInfo.votes > 0 && (
-                  <span className="text-xs text-muted-foreground ml-2">
-                    {storeInfo.votes.toLocaleString()} vote
-                    {storeInfo.votes === 1 ? "" : "s"}
-                  </span>
-                )}
+                <RatingWithVotes
+                  rating={storeInfo.rating}
+                  maxRating={5}
+                  votes={storeInfo.votes}
+                />
               </>
             ) : (
               <span className="text-red-500 flex items-center gap-1">

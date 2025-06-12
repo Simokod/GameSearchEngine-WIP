@@ -2,10 +2,12 @@ import { SearchQueryParams, Game } from "../types";
 import { STORE_NAMES, StoreName } from "../constants";
 import { RawgApiClient } from "./clients/rawgApi";
 import { SteamSpyApiClient } from "./clients/steamspyApi";
+import { GogApiClient } from "./clients/gogApi";
 
 class GamesService {
   rawgApiClient = new RawgApiClient();
   steamSpyApiClient = new SteamSpyApiClient();
+  gogApiClient = new GogApiClient();
 
   async initializeStoresCache() {
     await this.rawgApiClient.initializeStoresCache();
@@ -78,21 +80,51 @@ class GamesService {
     };
   }
 
-  async getGameInfo(store: StoreName, url: string) {
-    console.log("Game info query:", { store, url });
+  async getGameInfo(store: StoreName, query: string) {
+    console.log("Game info query:", { store, urlOrName: query });
     switch (store) {
-      case STORE_NAMES.GOG:
-        if (!url.includes("gog.com")) {
-          throw new Error("URL does not match GOG store");
+      case STORE_NAMES.GOG: {
+        let gameName = query;
+        const match = query.match(/gog.com\/(game|en)\/([a-zA-Z0-9_\-]+)/);
+        if (match && match[2]) {
+          gameName = match[2].replace(/_/g, " ");
         }
-        return { rating: 4.3, votes: 1234 };
-
+        const gogInfo = await this.gogApiClient.getGameInfo(gameName);
+        if (!gogInfo) {
+          throw new Error("Game not found on GOG");
+        }
+        const price = gogInfo.price || null;
+        let formattedPrice = null;
+        if (price) {
+          if (price.isDiscounted && price.baseAmount !== price.finalAmount) {
+            formattedPrice = {
+              original: price.baseAmount,
+              discounted: price.finalAmount,
+              currency: price.currency,
+              symbol: price.symbol,
+              discountPercentage: price.discountPercentage,
+            };
+          } else {
+            formattedPrice = {
+              amount: price.amount,
+              currency: price.currency,
+              symbol: price.symbol,
+            };
+          }
+        }
+        const rating =
+          typeof gogInfo.rating === "number" ? gogInfo.rating / 10 : null;
+        return {
+          price: formattedPrice,
+          rating,
+        };
+      }
       case STORE_NAMES.STEAM:
-        if (!url.includes("store.steampowered.com")) {
+        if (!query.includes("store.steampowered.com")) {
           throw new Error("URL does not match Steam store");
         }
 
-        const gameInfo = await this.steamSpyApiClient.getGameInfo(url);
+        const gameInfo = await this.steamSpyApiClient.getGameInfo(query);
         return {
           rating: Number(
             (

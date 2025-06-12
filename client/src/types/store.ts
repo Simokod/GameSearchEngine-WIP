@@ -1,8 +1,3 @@
-// export interface Store {
-//   name: string;
-//   url: string;
-// }
-
 export interface Store {
   id: string;
   name: string;
@@ -16,5 +11,15 @@ export interface Store {
 export interface StoreRatingInfo {
   rating: number;
   votes: number;
-  price: string;
+  price:
+    | string
+    | {
+        original?: string;
+        discounted?: string;
+        amount?: string;
+        label?: string;
+        currency?: string;
+        symbol?: string;
+        discountPercentage?: number;
+      };
 }
