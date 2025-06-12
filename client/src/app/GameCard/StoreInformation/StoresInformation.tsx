@@ -41,6 +41,12 @@ const EmptyState: React.FC = () => (
 );
 
 const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
+  const memoizedStores = useMemo(
+    () => stores.map((s) => ({ id: s.id, name: s.name, url: s.url })),
+    [stores]
+  );
+  const { info, isLoading } = useStoreInfo(memoizedStores);
+
   if (!stores || stores.length === 0) {
     return (
       <Accordion
@@ -59,13 +65,6 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
       </Accordion>
     );
   }
-
-  const memoizedStores = useMemo(
-    () => stores.map((s) => ({ id: s.id, name: s.name, url: s.url })),
-    [stores]
-  );
-
-  const { info, isLoading } = useStoreInfo(memoizedStores);
 
   return (
     <Accordion
