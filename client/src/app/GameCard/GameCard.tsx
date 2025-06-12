@@ -71,6 +71,7 @@ export const GameCard = ({ game }: { game: Game }) => {
             website={game.website}
             released={game.released}
           />
+          <div className="text-sm text-gray-600">{game.description}</div>
           <GenresAndPlatforms genres={game.genres} platforms={game.platforms} />
           <StoreInformation stores={mappedStores} />
         </div>

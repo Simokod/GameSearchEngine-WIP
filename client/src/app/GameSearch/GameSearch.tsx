@@ -2,13 +2,15 @@ import { useState } from "react";
 import { gameApi, type Game, type SearchParams } from "../../services/api";
 import { GameResults } from "../GameResults/GameResults";
 
-const DEFAULT_PAGE_SIZE = "5";
+const DEFAULT_PAGE_SIZE = 5;
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 export function GameSearch() {
   const [query, setQuery] = useState("");
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -19,7 +21,7 @@ export function GameSearch() {
     try {
       const params: SearchParams = {
         q: query,
-        page_size: DEFAULT_PAGE_SIZE,
+        page_size: pageSize,
       };
       const response = await gameApi.search(params);
       setGames(response.games);
@@ -34,7 +36,7 @@ export function GameSearch() {
   return (
     <div className="max-w-4xl p-4 ml-16 text-black">
       <div className="relative w-full mb-6">
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
           <input
             type="text"
             value={query}
@@ -50,6 +52,23 @@ export function GameSearch() {
           >
             {loading ? "Searching..." : "Search"}
           </button>
+        </div>
+        <div className="flex gap-2 items-center">
+          <label htmlFor="page-size-select" className="text-sm">
+            Results per page:
+          </label>
+          <span className="text-sm">or</span>
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={pageSize}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              if (!isNaN(val) && val > 0) setPageSize(val);
+            }}
+            className="w-20 p-2 border border-gray-300 rounded"
+          />
         </div>
       </div>
       {error && <div className="text-red-500 mb-4">{error}</div>}

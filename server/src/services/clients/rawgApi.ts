@@ -78,14 +78,18 @@ export class RawgApiClient {
   }
 
   async getGameDetails(gameId: number): Promise<DetailedGame> {
+    console.log("Fetching game details from RAWG API", gameId);
     const response = await this.api.get<DetailedGame>(`/games/${gameId}`);
+    console.log("Game details fetched successfully", response.data);
     return response.data;
   }
 
   async getGameStores(gameId: number): Promise<StoreResponse> {
+    console.log("Fetching game stores from RAWG API", gameId);
     const response = await this.api.get<StoreResponse>(
       `/games/${gameId}/stores`
     );
+    console.log("Game stores fetched successfully", response.data);
     return response.data;
   }
 

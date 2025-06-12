@@ -35,7 +35,7 @@ export interface RAWGResponse {
 export interface SearchQueryParams {
   q?: string;
   page?: string;
-  page_size?: string;
+  page_size?: number;
   ordering?: string;
   platforms?: string;
   genres?: string;
@@ -63,6 +63,7 @@ export interface DetailedGame extends Game {
   metacritic_platforms: PlatformRating[];
   playtime: number;
   website: string;
+  description: string;
 }
 
 export interface StoreResponse {
