@@ -98,6 +98,7 @@ class GamesService {
             ).toFixed(2)
           ),
           votes: gameInfo.positive + gameInfo.negative,
+          price: gameInfo.price,
         };
 
       default:

@@ -16,4 +16,5 @@ export interface Store {
 export interface StoreRatingInfo {
   rating: number;
   votes: number;
+  price: string;
 }

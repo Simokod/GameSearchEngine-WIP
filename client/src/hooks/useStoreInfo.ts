@@ -7,7 +7,7 @@ const MAX_RETRIES = 3;
 async function fetchWithRetries(
   store: Store,
   maxRetries: number
-): Promise<{ data?: StoreRatingInfo; error?: any }> {
+): Promise<{ data: StoreRatingInfo | null; error?: any }> {
   let lastError;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -19,11 +19,11 @@ async function fetchWithRetries(
     } catch (err) {
       lastError = err;
       if (attempt === maxRetries) {
-        return { error: err };
+        return { data: null, error: err };
       }
     }
   }
-  return { error: lastError };
+  return { data: null, error: lastError };
 }
 
 export function useStoreInfo(stores: Store[]) {
@@ -42,15 +42,19 @@ export function useStoreInfo(stores: Store[]) {
               MAX_RETRIES
             );
             if (error) {
-              return { store: storeObj.name, data: { rating: -1, votes: 0 } };
+              return {
+                store: storeObj.name,
+                data: null,
+                error,
+              };
             }
             return { store: storeObj.name, data };
           })
         );
         if (!cancelled) {
-          const infoObj: Record<string, StoreRatingInfo> = {};
-          results.forEach(({ store, data }) => {
-            infoObj[store.toLowerCase()] = data ?? { rating: -1, votes: 0 };
+          const infoObj: Record<string, StoreRatingInfo | null> = {};
+          results.forEach(({ store, data, error }) => {
+            infoObj[store.toLowerCase()] = error ? null : data;
           });
           setInfo(infoObj);
         }

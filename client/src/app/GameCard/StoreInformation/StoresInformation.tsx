@@ -13,7 +13,6 @@ import StoreInformationItem from "./StoreInformationItem";
 import Disclaimer from "./Disclaimer";
 import StoresHeader from "./StoresHeader";
 
-// Loading skeletons for the store info list
 const LoadingSkeletons: React.FC = () => (
   <div className="p-6">
     <div className="space-y-4">
@@ -32,7 +31,6 @@ const LoadingSkeletons: React.FC = () => (
   </div>
 );
 
-// Empty state for when there are no stores
 const EmptyState: React.FC = () => (
   <div className="text-center text-muted-foreground p-6">
     <AlertCircle className="w-8 h-8 mx-auto mb-2" />
