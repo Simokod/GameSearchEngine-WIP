@@ -21,8 +21,6 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
   store,
   storeInfo,
 }: StoreInfoItemProps) => {
-  const isError = storeInfo && storeInfo.rating === -1;
-
   return (
     <div
       className={`group relative p-2 rounded-lg border border-border transition-all duration-200 hover:border-primary hover:shadow-md cursor-pointer bg-card hover:bg-accent/50`}
@@ -30,9 +28,16 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center gap-3 mb-2">
-            <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
-              {store.name}
-            </h4>
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                {store.name}
+              </h4>
+              {storeInfo?.price && (
+                <span className="font-semibold text-green-700">
+                  {`$${(parseInt(storeInfo.price, 10) / 100).toFixed(2)}`}
+                </span>
+              )}
+            </div>
             <a
               href={store.url}
               target="_blank"
@@ -47,11 +52,7 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
             </a>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            {isError ? (
-              <span className="text-red-500 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> Failed to fetch
-              </span>
-            ) : (
+            {storeInfo ? (
               <>
                 {storeInfo && (
                   <Rating rating={storeInfo.rating} maxRating={5} />
@@ -63,9 +64,10 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
                   </span>
                 )}
               </>
-            )}
-            {store.price && (
-              <span className="font-semibold text-primary">{store.price}</span>
+            ) : (
+              <span className="text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" /> Failed to fetch
+              </span>
             )}
           </div>
         </div>

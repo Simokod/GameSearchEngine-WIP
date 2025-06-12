@@ -14,13 +14,12 @@ export class SteamSpyApiClient {
   async getGameInfo(url: string): Promise<SteamspyGameInfo> {
     const match = url.match(/store\.steampowered\.com\/app\/(\d+)/);
     const appid = match ? match[1] : null;
-    console.log("App ID:", appid);
     if (!appid) {
       throw new Error("Invalid Steam URL");
     }
 
     const response = await this.api.get(`?request=appdetails&appid=${appid}`);
-    console.log("Response:", response.data);
+    console.log("steamSpyApi GameInfo Response:", response.data);
     return response.data as SteamspyGameInfo;
   }
 }

@@ -64,6 +64,7 @@ export const gameApi = {
     const response = await api.get("/games/game-info", {
       params: { store, url },
     });
+    console.log("gameApi getGameInfo Response:", response.data);
     return response.data as StoreRatingInfo;
   },
 };
