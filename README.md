@@ -17,7 +17,6 @@ This is a monorepo containing both the frontend and backend code:
   - Ratings (RAWG and Metacritic)
   - Store availability (Steam, GOG, Epic Games)
   - Platform-specific ratings
-  - Average playtime
   - Official website links
   - Genres and platforms
 

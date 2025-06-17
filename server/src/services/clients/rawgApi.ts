@@ -1,12 +1,7 @@
 import axios from "axios";
 import { config } from "../../config";
-import {
-  RAWGResponse,
-  DetailedGame,
-  StoreResponse,
-  Store,
-  SearchQueryParams,
-} from "../../types";
+import { DetailedGame, RAWGResponse, StoreResponse, Store } from "./types";
+import { SearchQueryParams } from "../../routes/types";
 
 export class RawgApiClient {
   private baseUrl = "https://api.rawg.io/api";
@@ -23,6 +18,8 @@ export class RawgApiClient {
   }
 
   async initializeStoresCache(): Promise<void> {
+    if (Object.keys(this.storesCache).length > 0) return;
+
     try {
       if (!config.rawgApiKey) {
         throw new Error("RAWG API key not configured");
@@ -42,23 +39,13 @@ export class RawgApiClient {
   }
 
   async searchGames(params: SearchQueryParams): Promise<RAWGResponse> {
-    const {
-      q: search,
-      ordering,
-      platforms,
-      genres,
-      metacritic,
-      page,
-      page_size,
-    } = params;
+    const { q: search, ordering, platforms, genres, page, page_size } = params;
 
     if (!search) {
       throw new Error("Search query is required");
     }
 
-    if (Object.keys(this.storesCache).length === 0) {
-      await this.initializeStoresCache();
-    }
+    await this.initializeStoresCache();
 
     console.log("Fetching games from RAWG API");
     const response = await this.api.get<RAWGResponse>("/games", {
@@ -69,18 +56,19 @@ export class RawgApiClient {
         ordering,
         platforms,
         genres,
-        metacritic,
       },
     });
 
-    console.log("Games fetched successfully");
+    console.log(
+      `RAWG API: ${response.data.results.length} games fetched successfully`
+    );
     return response.data;
   }
 
   async getGameDetails(gameId: number): Promise<DetailedGame> {
     console.log("Fetching game details from RAWG API", gameId);
     const response = await this.api.get<DetailedGame>(`/games/${gameId}`);
-    console.log("Game details fetched successfully", response.data);
+    // console.log("Game details fetched successfully", response.data);
     return response.data;
   }
 
@@ -89,23 +77,11 @@ export class RawgApiClient {
     const response = await this.api.get<StoreResponse>(
       `/games/${gameId}/stores`
     );
-    console.log("Game stores fetched successfully", response.data);
+    // console.log("Game stores fetched successfully", response.data);
     return response.data;
   }
 
-  async getGameDetailsWithStores(gameId: number): Promise<{
-    details: DetailedGame;
-    stores: StoreResponse;
-  }> {
-    const [details, stores] = await Promise.all([
-      this.getGameDetails(gameId),
-      this.getGameStores(gameId),
-    ]);
-
-    return { details, stores };
-  }
-
-  getStoreName(storeId: number): string | undefined {
-    return this.storesCache[storeId]?.name;
+  getStoreName(storeId: number): string {
+    return this.storesCache[storeId]?.name ?? "";
   }
 }

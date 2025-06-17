@@ -30,13 +30,9 @@ export interface Game {
   name: string;
   released: string;
   rating: number;
-  ratings: Rating[];
-  metacritic: number;
   genres: string[];
   platforms: string[];
   stores: Store[];
-  platform_ratings: PlatformRating[];
-  playtime: number;
   website: string;
   description: string;
 }
@@ -53,7 +49,6 @@ export interface SearchParams {
   ordering?: string;
   platforms?: string;
   genres?: string;
-  metacritic?: string;
 }
 
 export const gameApi = {

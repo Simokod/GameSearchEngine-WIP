@@ -40,7 +40,7 @@ router.get("/game-info", async (req, res) => {
   }
 
   try {
-    const info = await gamesService.getGameInfo(store, url);
+    const info = await gamesService.getStoreGameInfo(store, url);
     res.json(info);
   } catch (error: any) {
     res
