@@ -12,6 +12,7 @@ const StoreInformationItem: React.FC<StoreInfoItemProps> = ({
   store,
   storeInfo,
 }: StoreInfoItemProps) => {
+
   return (
     <div
       className={`group relative p-2 rounded-lg border border-border transition-all duration-200 hover:border-primary hover:shadow-md cursor-pointer bg-card hover:bg-accent/50`}

@@ -1,4 +1,4 @@
-import { DetailedGame } from "@/services/clients/types";
+import { StoreName } from "../constants";
 
 interface StoreInfo {
   name: string;
@@ -7,23 +7,33 @@ interface StoreInfo {
 
 export interface SearchQueryParams {
   q?: string;
-  page?: string;
-  page_size?: number;
   ordering?: string;
   platforms?: string;
   genres?: string;
+  page?: number;
+  page_size?: number;
 }
 
 export interface SearchResponse {
   games: FullGameInfo[];
 }
 
-export interface FullGameInfo
-  extends Omit<
-    DetailedGame,
-    "platforms" | "stores" | "genres" | "slug" | "background_image"
-  > {
-  platforms: string[];
-  stores: StoreInfo[];
-  genres: string[];
+export interface FullGameInfo {
+  id: number;
+  name: string;
+  released: string;
+  rating: number;
+  genres?: string[];
+  platforms?: string[];
+  stores: Array<{
+    name: string;
+    url: string;
+  }>;
+  website: string;
+  description: string;
+}
+
+export interface StoreRequest {
+  store: StoreName;
+  url: string;
 }

@@ -1,81 +1,49 @@
-import { useState, useEffect } from "react";
-import { gameApi } from "../services/api";
+import { useEffect, useState } from "react";
 import { Store, StoreRatingInfo } from "@/types/store";
+import { gameApi } from "@/services/api";
 
-const MAX_RETRIES = 3;
-
-async function fetchWithRetries(
-  store: Store,
-  maxRetries: number
-): Promise<{ data: StoreRatingInfo | null; error?: any }> {
-  let lastError;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const data = await gameApi.getGameInfo(
-        store.name.toLowerCase(),
-        store.url
-      );
-      return { data };
-    } catch (err) {
-      lastError = err;
-      if (attempt === maxRetries) {
-        return { data: null, error: err };
-      }
-    }
-  }
-  return { data: null, error: lastError };
+interface StoreInfoState {
+  data: Record<string, StoreRatingInfo> | null;
+  error: Error | null;
+  isLoading: boolean;
 }
 
-export function useStoreInfo(stores: Store[]) {
-  const [info, setInfo] = useState<Record<string, StoreRatingInfo | null>>({});
-  const [isLoading, setIsLoading] = useState(false);
+export const useStoreInfo = (stores: Store[], maxRetries = 3) => {
+  const [state, setState] = useState<StoreInfoState>({
+    data: null,
+    error: null,
+    isLoading: false,
+  });
 
   useEffect(() => {
-    let cancelled = false;
-    async function fetchAllInfo() {
-      setIsLoading(true);
-      try {
-        const results = await Promise.all(
-          stores.map(async (storeObj) => {
-            const { data, error } = await fetchWithRetries(
-              storeObj,
-              MAX_RETRIES
-            );
-            if (error) {
-              console.error("Failed to fetch store information.", error);
-              return {
-                store: storeObj.name,
-                data: null,
-                error,
-              };
-            }
-            return { store: storeObj.name, data };
-          })
-        );
-        if (!cancelled) {
-          const infoObj: Record<string, StoreRatingInfo | null> = {};
-          results.forEach(({ store, data, error }) => {
-            infoObj[store.toLowerCase()] = error ? null : data;
-          });
-          setInfo(infoObj);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          console.error("Failed to fetch store information.", e);
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
+    const fetchStoreInfo = async () => {
+      if (!stores.length) {
+        setState({ data: null, error: null, isLoading: false });
+        return;
       }
-    }
-    if (stores.length > 0) {
-      fetchAllInfo();
-    } else {
-      setInfo({});
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [stores]);
 
-  return { info, isLoading };
-}
+      setState((prev) => ({ ...prev, isLoading: true }));
+
+      try {
+        const requests = stores.map((store) => ({
+          store: store.name.toLowerCase(),
+          url: store.url,
+        }));
+
+        const data = await gameApi.getGameInfo(requests);
+        setState({ data, error: null, isLoading: false });
+      } catch (error) {
+        console.error("Failed to fetch store info:", error);
+        setState({
+          data: null,
+          error: error as Error,
+          isLoading: false,
+        });
+      }
+    };
+
+    fetchStoreInfo();
+  }, [stores, maxRetries]);
+
+  return state;
+};

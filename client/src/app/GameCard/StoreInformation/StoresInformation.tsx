@@ -43,7 +43,7 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
     () => stores.map((s) => ({ id: s.id, name: s.name, url: s.url })),
     [stores]
   );
-  const { info, isLoading } = useStoreInfo(memoizedStores);
+  const { data, error, isLoading } = useStoreInfo(memoizedStores);
 
   if (!stores || stores.length === 0) {
     return (
@@ -77,16 +77,21 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
         <AccordionContent>
           {isLoading ? (
             <LoadingSkeletons />
+          ) : error ? (
+            <div className="p-6 text-center text-red-500">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+              <p>Failed to fetch store information</p>
+            </div>
           ) : (
             <div className="px-3 py-2 gap-0">
               <div className="space-y-1">
                 {stores.map((store) => {
-                  const storeInfo = info[store.name.toLowerCase()];
+                  const storeInfo = data?.[store.name.toLowerCase()];
                   return (
                     <StoreInformationItem
                       key={store.id}
                       store={store}
-                      storeInfo={storeInfo}
+                      storeInfo={storeInfo ?? null}
                     />
                   );
                 })}
