@@ -31,20 +31,33 @@ export class GogApiClient implements StoreApiClient {
       .replace(/[^a-z0-9]+/g, " ");
   }
 
+  private getFirstWord(str: string): string {
+    return str.split(/[\s-]+/)[0];
+  }
+
   async getGameInfo(gameUrl: string): Promise<GogGameInfo | null> {
     let gameName = gameUrl;
     // TODO: This is not always correct, but it's a good start
     const match = gameUrl.match(/gog\.com(?:\/en)?\/game\/([a-zA-Z0-9_\-]+)/);
     if (match && match[1]) {
-      gameName = match[1];
+      gameName = match[1].replace(/_/g, " ");
     }
+    const searchTerm = this.getFirstWord(gameName);
+    console.log("GOG API searching for term:", searchTerm);
+
     const url = `/games/ajax/filtered?mediaType=game&search=${encodeURIComponent(
-      gameName
+      searchTerm
     )}`;
     const response = await this.api.get<GogRawInfo>(url);
     const products = response.data.products;
     if (!products || products.length === 0) {
-      console.log("No products found: ", gameUrl);
+      console.log(
+        "No products found for:",
+        searchTerm,
+        "(original:",
+        gameName,
+        ")"
+      );
       return null;
     }
 

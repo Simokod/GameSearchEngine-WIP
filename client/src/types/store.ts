@@ -8,16 +8,20 @@ export interface Store {
   logo?: string;
 }
 
+export interface StoreRequest {
+  store: string;
+  url: string;
+}
+
 export interface StoreRatingInfo {
-  rating: number;
-  votes: number;
+  rating?: number;
+  votes?: number;
   price:
     | string
     | {
-        original?: string;
-        discounted?: string;
-        amount?: string;
-        label?: string;
+        amount?: number;
+        original?: number;
+        discounted?: number;
         currency?: string;
         symbol?: string;
         discountPercentage?: number;

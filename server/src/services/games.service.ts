@@ -2,12 +2,13 @@ import {
   SearchQueryParams,
   SearchResponse,
   FullGameInfo,
+  StoreRequest,
 } from "../routes/types";
 import { STORE_NAMES, StoreName } from "../constants";
 import { RawgApiClient } from "./clients/rawgApi";
 import { SteamSpyApiClient } from "./clients/stores/steamspyApi";
 import { GogApiClient } from "./clients/stores/gogApi";
-import { GogPrice } from "./clients/stores/types";
+import { StoreGameInfo } from "./clients/stores/types";
 import { RawgGame } from "./clients/types";
 
 class GamesService {
@@ -78,19 +79,35 @@ class GamesService {
     };
   }
 
+  async getMultiStoreGameInfo(
+    requests: StoreRequest[]
+  ): Promise<{ [key: string]: StoreGameInfo | null }> {
+    const results: { [key: string]: StoreGameInfo | null } = {};
+
+    await Promise.all(
+      requests.map(async ({ store, url }) => {
+        try {
+          const info = await this.getStoreGameInfo(store, url);
+          results[store] = info;
+        } catch (error) {
+          console.error(`Failed to fetch info for store ${store}:`, error);
+          results[store] = null;
+        }
+      })
+    );
+
+    return results;
+  }
+
   async getStoreGameInfo(
     store: StoreName,
     query: string
-  ): Promise<{
-    price: string | GogPrice;
-    rating?: number;
-    votes?: number;
-  }> {
+  ): Promise<StoreGameInfo | null> {
     console.log("Game info query:", { store, query });
     switch (store) {
       case STORE_NAMES.GOG: {
         const gogInfo = await this.gogApiClient.getGameInfo(query);
-        return gogInfo ?? { price: "" };
+        return gogInfo ?? null;
       }
 
       case STORE_NAMES.STEAM:
@@ -99,10 +116,11 @@ class GamesService {
         }
 
         const gameInfo = await this.steamSpyApiClient.getGameInfo(query);
-        return gameInfo ?? { price: "" };
+        return gameInfo ?? null;
 
       default:
-        throw new Error(`Store '${store}' not supported yet`);
+        console.error(`Store '${store}' not supported yet`);
+        return null;
     }
   }
 }
