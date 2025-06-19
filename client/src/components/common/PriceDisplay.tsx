@@ -8,8 +8,6 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({ price }) => {
   if (!price) return null;
   if (typeof price === "string") {
     return <>{`$${(parseInt(price, 10) / 100).toFixed(2)}`}</>;
-  } else if (price.label) {
-    return <>{price.label}</>;
   } else if (price.original && price.discounted) {
     return (
       <>
