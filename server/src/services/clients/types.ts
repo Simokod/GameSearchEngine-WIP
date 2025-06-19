@@ -12,15 +12,13 @@ export interface Genre {
   slug: string;
 }
 
-export interface Game {
+export interface RawgGame {
   id: number;
   slug: string;
   name: string;
   released: string;
   background_image: string;
   rating: number;
-  ratings: any[];
-  metacritic: number;
   platforms: Platform[];
   genres: Genre[];
 }
@@ -29,39 +27,16 @@ export interface RAWGResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: Game[];
+  results: RawgGame[];
 }
 
-export interface SearchQueryParams {
-  q?: string;
-  page?: string;
-  page_size?: number;
-  ordering?: string;
-  platforms?: string;
-  genres?: string;
-  metacritic?: string;
-}
-
-export interface Store {
-  id: number;
-  name: string;
-  domain: string;
-  slug: string;
-}
-
-export interface StoreLink {
+interface StoreLink {
   store: Store;
   url: string;
 }
 
-export interface PlatformRating {
-  metascore: number;
-}
-
-export interface DetailedGame extends Game {
+export interface DetailedGame extends RawgGame {
   stores: StoreLink[];
-  metacritic_platforms: PlatformRating[];
-  playtime: number;
   website: string;
   description: string;
 }
@@ -73,4 +48,11 @@ export interface StoreResponse {
     url: string;
     store_id: number;
   }>;
+}
+
+export interface Store {
+  id: number;
+  name: string;
+  domain: string;
+  slug: string;
 }

@@ -5,6 +5,7 @@ import {
 
 function groupPlatforms(platforms: string[]) {
   const groups: Record<string, string[]> = {};
+  console.log(platforms);
   platforms.forEach((platform) => {
     const key = Object.keys(platformIconMap).find((k) =>
       platform.toLowerCase().includes(k.toLowerCase())
