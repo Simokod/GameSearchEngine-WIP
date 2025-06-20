@@ -47,20 +47,9 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
 
   if (!stores || stores.length === 0) {
     return (
-      <Accordion
-        type="single"
-        collapsible
-        className="w-full mt-4 border border-border bg-card rounded-lg"
-      >
-        <AccordionItem value="store-info">
-          <AccordionTrigger className="p-4 rounded-t-lg border-b border-border bg-card">
-            <StoresHeader storesCount={0} />
-          </AccordionTrigger>
-          <AccordionContent>
-            <EmptyState />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <div className="w-full mt-4 border border-border bg-card rounded-lg">
+        <EmptyState />
+      </div>
     );
   }
 
@@ -72,7 +61,7 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
     >
       <AccordionItem value="store-info">
         <AccordionTrigger className="p-4 rounded-t-lg border-b border-border bg-card">
-          <StoresHeader storesCount={stores.length} />
+          <StoresHeader stores={stores} />
         </AccordionTrigger>
         <AccordionContent>
           {isLoading ? (
