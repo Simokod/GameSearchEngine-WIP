@@ -59,8 +59,8 @@ export const gameApi = {
   getGameInfo: async (
     requests: StoreRequest[]
   ): Promise<Record<string, StoreRatingInfo>> => {
-    const response = await api.get("/games/game-info", {
-      params: { stores: JSON.stringify(requests) },
+    const response = await api.post("/games/game-info", {
+      stores: requests,
     });
     return response.data as Record<string, StoreRatingInfo>;
   },

@@ -1,18 +1,10 @@
-import { StoreName } from "../constants";
+import { z } from "zod";
+import { getGameInfoBodySchema, searchGamesQuerySchema } from "./schemas";
 
-interface StoreInfo {
-  name: string;
-  url: string;
-}
-
-export interface SearchQueryParams {
-  q?: string;
-  ordering?: string;
-  platforms?: string;
-  genres?: string;
-  page?: number;
-  page_size?: number;
-}
+export type SearchQueryParams = z.infer<typeof searchGamesQuerySchema>;
+export type StoreRequest = z.infer<
+  typeof getGameInfoBodySchema
+>["stores"][number];
 
 export interface SearchResponse {
   games: FullGameInfo[];
@@ -31,9 +23,4 @@ export interface FullGameInfo {
   }>;
   website: string;
   description: string;
-}
-
-export interface StoreRequest {
-  store: StoreName;
-  url: string;
 }
