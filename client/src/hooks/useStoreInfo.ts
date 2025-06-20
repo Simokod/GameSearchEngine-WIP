@@ -1,49 +1,22 @@
-import { useEffect, useState } from "react";
-import { Store, StoreRatingInfo } from "@/types/store";
+import { useQuery } from "@tanstack/react-query";
 import { gameApi } from "@/services/api";
+import { Store } from "@/types/store";
 
-interface StoreInfoState {
-  data: Record<string, StoreRatingInfo> | null;
-  error: Error | null;
-  isLoading: boolean;
-}
-
-export const useStoreInfo = (stores: Store[], maxRetries = 3) => {
-  const [state, setState] = useState<StoreInfoState>({
-    data: null,
-    error: null,
-    isLoading: false,
+export const useStoreInfo = (
+  gameName: string,
+  stores: Store[],
+  enabled: boolean
+) => {
+  return useQuery({
+    queryKey: ["storeInfo", gameName, stores.map((s) => s.id).join(",")],
+    queryFn: () =>
+      gameApi.getGameInfo(
+        stores.map((s) => ({
+          store: s.name.toLowerCase(),
+          url: s.url,
+        }))
+      ),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: stores.length > 0 && enabled,
   });
-
-  useEffect(() => {
-    const fetchStoreInfo = async () => {
-      if (!stores.length) {
-        setState({ data: null, error: null, isLoading: false });
-        return;
-      }
-
-      setState((prev) => ({ ...prev, isLoading: true }));
-
-      try {
-        const requests = stores.map((store) => ({
-          store: store.name.toLowerCase(),
-          url: store.url,
-        }));
-
-        const data = await gameApi.getGameInfo(requests);
-        setState({ data, error: null, isLoading: false });
-      } catch (error) {
-        console.error("Failed to fetch store info:", error);
-        setState({
-          data: null,
-          error: error as Error,
-          isLoading: false,
-        });
-      }
-    };
-
-    fetchStoreInfo();
-  }, [stores, maxRetries]);
-
-  return state;
 };
