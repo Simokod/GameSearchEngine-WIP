@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Accordion,
   AccordionItem,
@@ -38,12 +38,16 @@ const EmptyState: React.FC = () => (
   </div>
 );
 
-const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
+const StoresInformation: React.FC<{ gameName: string; stores: Store[] }> = ({
+  gameName,
+  stores = [],
+}) => {
+  const [isOpened, setIsOpened] = useState(false);
   const memoizedStores = useMemo(
     () => stores.map((s) => ({ id: s.id, name: s.name, url: s.url })),
     [stores]
   );
-  const { data, error, isLoading } = useStoreInfo(memoizedStores);
+  const { data, error, isLoading } = useStoreInfo(gameName, memoizedStores, isOpened);
 
   if (!stores || stores.length === 0) {
     return (
@@ -58,6 +62,11 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
       type="single"
       collapsible
       className="w-full mt-4 border border-border bg-card rounded-lg"
+      onValueChange={(value) => {
+        if (value && !isOpened) {
+          setIsOpened(true);
+        }
+      }}
     >
       <AccordionItem value="store-info">
         <AccordionTrigger className="p-4 rounded-t-lg border-b border-border bg-card">
@@ -72,21 +81,23 @@ const StoresInformation: React.FC<{ stores: Store[] }> = ({ stores = [] }) => {
               <p>Failed to fetch store information</p>
             </div>
           ) : (
-            <div className="px-3 py-2 gap-0">
-              <div className="space-y-1">
-                {stores.map((store) => {
-                  const storeInfo = data?.[store.name.toLowerCase()];
-                  return (
-                    <StoreInformationItem
-                      key={store.id}
-                      store={store}
-                      storeInfo={storeInfo ?? null}
-                    />
-                  );
-                })}
+            data && (
+              <div className="px-3 py-2 gap-0">
+                <div className="space-y-1">
+                  {stores.map((store) => {
+                    const storeInfo = data?.[store.name.toLowerCase()];
+                    return (
+                      <StoreInformationItem
+                        key={store.id}
+                        store={store}
+                        storeInfo={storeInfo ?? null}
+                      />
+                    );
+                  })}
+                </div>
+                <Disclaimer />
               </div>
-              <Disclaimer />
-            </div>
+            )
           )}
         </AccordionContent>
       </AccordionItem>

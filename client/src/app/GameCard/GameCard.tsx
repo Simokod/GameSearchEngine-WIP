@@ -79,7 +79,7 @@ export const GameCard = ({ game }: { game: Game }) => {
             }}
           />
           <GenresAndPlatforms genres={game.genres} platforms={game.platforms} />
-          <StoreInformation stores={mappedStores} />
+          <StoreInformation gameName={game.name} stores={mappedStores} />
         </div>
       </div>
     </div>
