@@ -2,8 +2,8 @@
   # Build command
   command = "npm run build"
 
-  # Directory with the built site
-  publish = "client/dist"
+  # Directory with the built site, relative to the base directory
+  publish = "dist"
 
   # Base directory
   base = "client"
