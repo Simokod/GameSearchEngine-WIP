@@ -1,0 +1,24 @@
+[build]
+  # Build command
+  command = "npm run build"
+
+  # Directory with the built site
+  publish = "client/dist"
+
+  # Base directory
+  base = "client"
+
+# Proxy rule to redirect API calls to the Render server
+[[redirects]]
+  # The path on your Netlify site
+  from = "/api/*"
+
+  # The URL of your Render backend.
+  # This value will be substituted from a Netlify environment variable.
+  to = ":API_URL/api/:splat"
+
+  # HTTP status code for the redirect
+  status = 200
+
+  # Force the redirect even if a file exists at the 'from' path
+  force = true 
