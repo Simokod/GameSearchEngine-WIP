@@ -39,9 +39,9 @@ export class RawgApiClient {
   }
 
   async searchGames(params: SearchQueryParams): Promise<RAWGResponse> {
-    const { q: search, ordering, platforms, genres, page, page_size } = params;
+    const { query, pageSize, page } = params;
 
-    if (!search) {
+    if (!query) {
       throw new Error("Search query is required");
     }
 
@@ -50,12 +50,9 @@ export class RawgApiClient {
     console.log("Fetching games from RAWG API");
     const response = await this.api.get<RAWGResponse>("/games", {
       params: {
-        search,
+        query,
         page,
-        page_size,
-        ordering,
-        platforms,
-        genres,
+        page_size: pageSize,
       },
     });
 
