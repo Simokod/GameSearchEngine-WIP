@@ -59,13 +59,7 @@ class GamesService {
   }
 
   async searchGames(params: SearchQueryParams): Promise<SearchResponse> {
-    const { q: search } = params;
-
-    if (!search) {
-      throw new Error("Search query is required");
-    }
-
-    console.log("Games search query:", search);
+    console.log("Games search query:", params);
     const searchResponse = await this.rawgApiClient.searchGames(params);
     // console.log("Games search response:", searchResponse);
     const gamesWithStores = await Promise.all(

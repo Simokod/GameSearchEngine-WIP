@@ -43,12 +43,9 @@ export interface SearchResponse {
 }
 
 export interface SearchParams {
-  q?: string;
-  page?: string;
-  page_size?: number;
-  ordering?: string;
-  platforms?: string;
-  genres?: string;
+  query: string;
+  pageSize?: number;
+  page?: number;
 }
 
 export const gameApi = {
