@@ -9,7 +9,8 @@ import { RawgApiClient } from "./clients/rawgApi";
 import { SteamSpyApiClient } from "./clients/stores/steamspyApi";
 import { GogApiClient } from "./clients/stores/gogApi";
 import { StoreGameInfo } from "./clients/stores/types";
-import { RawgGame } from "./clients/types";
+import { extractGameSearchParams } from "./clients/huggingfaceApi";
+import { GameDbGameSummary, GameDbGameDetails } from "./clients/gamedb/types";
 
 class GamesService {
   rawgApiClient = new RawgApiClient();
@@ -20,35 +21,30 @@ class GamesService {
     await this.rawgApiClient.initializeStoresCache();
   }
 
-  private async getGameInfo(game: RawgGame): Promise<FullGameInfo> {
+  private async getGameInfo(game: GameDbGameSummary): Promise<FullGameInfo> {
+    // Fetch full details using the new interface
+    const detailsResponse: GameDbGameDetails | null =
+      await this.rawgApiClient.getGameDetails(game.id);
+    const id = typeof game.id === "string" ? parseInt(game.id, 10) : game.id;
+    const released = game.released ?? "";
+    const rating = (game as any).rating ?? 0; // fallback to 0 if not available
     const partialResult = {
-      id: game.id,
+      id,
       name: game.name,
-      released: game.released,
-      rating: game.rating,
-      genres: game.genres?.map((g) => g.name),
-      platforms: game.platforms?.map((p) => p.platform.name),
+      released,
+      rating,
+      genres: game.genres,
+      platforms: game.platforms,
     };
 
-    try {
-      const detailsResponse = await this.rawgApiClient.getGameDetails(game.id);
-      const storesResponse = await this.rawgApiClient.getGameStores(game.id);
-
-      const stores = storesResponse.results
-        .filter((s) => this.rawgApiClient.getStoreName(s.store_id))
-        .map((s) => ({
-          name: this.rawgApiClient.getStoreName(s.store_id),
-          url: s.url,
-        }));
-
+    if (detailsResponse) {
       return {
         ...partialResult,
-        stores,
+        stores: detailsResponse.stores || [],
         website: detailsResponse.website || "",
         description: detailsResponse.description || "",
       };
-    } catch (error) {
-      console.error(`Failed to fetch details for game ${game.name}:`, error);
+    } else {
       return {
         ...partialResult,
         stores: [],
@@ -60,10 +56,19 @@ class GamesService {
 
   async searchGames(params: SearchQueryParams): Promise<SearchResponse> {
     console.log("Games search query:", params);
-    const searchResponse = await this.rawgApiClient.searchGames(params);
-    // console.log("Games search response:", searchResponse);
+    // 1. Extract structured info from LLM
+    const extracted = await extractGameSearchParams(params.query);
+    console.log("Extracted fields from HuggingFace:", extracted);
+    // 2. For now, just pass the original query and log the extracted fields
+    //    (mapping to RAWG params will be implemented next)
+    const searchResults = await this.rawgApiClient.searchGames({
+      query: params.query,
+      page: params.page,
+      pageSize: params.pageSize,
+    });
+
     const gamesWithStores = await Promise.all(
-      searchResponse.results.map(async (game: RawgGame) => {
+      searchResults.map(async (game: GameDbGameSummary) => {
         return this.getGameInfo(game);
       })
     );
