@@ -8,6 +8,7 @@ import {
   RawgGame,
   Genre,
   Platform,
+  Tag,
 } from "./types";
 import {
   GameDbClient,
@@ -20,6 +21,9 @@ export class RawgApiClient implements GameDbClient {
   private baseUrl = "https://api.rawg.io/api";
   private api: Axios.AxiosInstance;
   private storesCache: { [key: number]: Store } = {};
+  private genresCache: { [key: number]: Genre } = {};
+  private platformsCache: { [key: number]: Platform } = {};
+  private tagsCache: { [key: number]: Tag } = {};
 
   constructor() {
     this.api = axios.create({
@@ -30,23 +34,67 @@ export class RawgApiClient implements GameDbClient {
     });
   }
 
-  async initializeStoresCache(): Promise<void> {
-    if (Object.keys(this.storesCache).length > 0) return;
+  async initializeCache(): Promise<void> {
+    if (
+      Object.keys(this.storesCache).length > 0 &&
+      Object.keys(this.genresCache).length > 0 &&
+      Object.keys(this.platformsCache).length > 0 &&
+      Object.keys(this.tagsCache).length > 0
+    )
+      return;
 
     try {
       if (!config.rawgApiKey) {
         throw new Error("RAWG API key not configured");
       }
 
-      const response = await this.api.get<{ results: Store[] }>("/stores");
-      this.storesCache = {};
-      response.data.results.forEach((store: Store) => {
-        this.storesCache[store.id] = store;
-      });
+      // Initialize stores cache
+      if (Object.keys(this.storesCache).length === 0) {
+        const storesResponse = await this.api.get<{ results: Store[] }>(
+          "/stores"
+        );
+        this.storesCache = {};
+        storesResponse.data.results.forEach((store: Store) => {
+          this.storesCache[store.id] = store;
+        });
+        console.log("Stores cache initialized");
+      }
 
-      console.log("Stores cache initialized");
+      // Initialize genres cache
+      if (Object.keys(this.genresCache).length === 0) {
+        const genresResponse = await this.api.get<{ results: Genre[] }>(
+          "/genres"
+        );
+        this.genresCache = {};
+        genresResponse.data.results.forEach((genre: Genre) => {
+          this.genresCache[genre.id] = genre;
+        });
+        console.log("Genres cache initialized");
+      }
+
+      // Initialize platforms cache
+      if (Object.keys(this.platformsCache).length === 0) {
+        const platformsResponse = await this.api.get<{ results: Platform[] }>(
+          "/platforms"
+        );
+        this.platformsCache = {};
+        platformsResponse.data.results.forEach((platform: Platform) => {
+          this.platformsCache[platform.id] = platform;
+        });
+        console.log("Platforms cache initialized");
+      }
+
+      // Initialize tags cache
+      if (Object.keys(this.tagsCache).length === 0) {
+        const tagsResponse = await this.api.get<{ results: Tag[] }>("/tags");
+        this.tagsCache = {};
+        tagsResponse.data.results.forEach((tag: Tag) => {
+          this.tagsCache[tag.id] = tag;
+        });
+        console.log("Tags cache initialized");
+      }
     } catch (error) {
-      console.error("Failed to initialize stores cache:", error);
+      console.error("Failed to initialize caches:", error);
       throw error;
     }
   }
@@ -64,11 +112,7 @@ export class RawgApiClient implements GameDbClient {
       pageSize,
     } = params;
 
-    if (!query) {
-      throw new Error("Search query is required");
-    }
-
-    await this.initializeStoresCache();
+    await this.initializeCache();
 
     // Map params to RAWG API params
     const rawgParams: any = {
@@ -76,11 +120,32 @@ export class RawgApiClient implements GameDbClient {
       page,
       page_size: pageSize,
     };
-    if (genres && genres.length) rawgParams.genres = genres.join(",");
-    if (platforms && platforms.length)
-      rawgParams.platforms = platforms.join(",");
-    if (tags && tags.length) rawgParams.tags = tags.join(",");
-    if (dates) rawgParams.dates = dates;
+
+    // Convert genre names to IDs
+    if (genres && genres.length) {
+      const genreIds = genres
+        .map((genre) => this.getGenreId(genre))
+        .filter((id) => id !== null);
+      if (genreIds.length > 0) rawgParams.genres = genreIds.join(",");
+    }
+
+    // Convert platform names to IDs
+    if (platforms && platforms.length) {
+      const platformIds = platforms
+        .map((platform) => this.getPlatformId(platform))
+        .filter((id) => id !== null);
+      if (platformIds.length > 0) rawgParams.platforms = platformIds.join(",");
+    }
+
+    // Convert tag names to IDs
+    if (tags && tags.length) {
+      const tagIds = tags
+        .map((tag) => this.getTagId(tag))
+        .filter((id) => id !== null);
+      if (tagIds.length > 0) rawgParams.tags = tagIds.join(",");
+    }
+
+    if (dates && dates.length) rawgParams.dates = dates.join(",");
     if (developers && developers.length)
       rawgParams.developers = developers.join(",");
     if (publishers && publishers.length)
@@ -96,7 +161,7 @@ export class RawgApiClient implements GameDbClient {
       name: game.name,
       released: game.released,
       genres: game.genres?.map((g: Genre) => g.name),
-      platforms: game.platforms?.map((p: Platform) => p.platform.name),
+      platforms: game.platforms?.map((p: { platform: Platform }) => p.platform.name),
       coverUrl: game.background_image,
     }));
   }
@@ -117,13 +182,13 @@ export class RawgApiClient implements GameDbClient {
           name: this.getStoreName(s.store_id),
           url: s.url,
         }));
-        
+
       return {
         id: details.id,
         name: details.name,
         released: details.released,
         genres: details.genres?.map((g: Genre) => g.name),
-        platforms: details.platforms?.map((p: Platform) => p.platform.name),
+        platforms: details.platforms?.map((p: { platform: Platform }) => p.platform.name),
         coverUrl: details.background_image,
         description: details.description,
         website: details.website,
@@ -146,5 +211,26 @@ export class RawgApiClient implements GameDbClient {
 
   getStoreName(storeId: number): string {
     return this.storesCache[storeId]?.name ?? "";
+  }
+
+  getGenreId(genreName: string): number | null {
+    const genre = Object.values(this.genresCache).find(
+      (g) => g.name.toLowerCase() === genreName.toLowerCase()
+    );
+    return genre?.id ?? null;
+  }
+
+  getPlatformId(platformName: string): number | null {
+    const platform = Object.values(this.platformsCache).find(
+      (p) => p.name.toLowerCase() === platformName.toLowerCase()
+    );
+    return platform?.id ?? null;
+  }
+
+  getTagId(tagName: string): number | null {
+    const tag = Object.values(this.tagsCache).find(
+      (t) => t.name.toLowerCase() === tagName.toLowerCase()
+    );
+    return tag?.id ?? null;
   }
 }
