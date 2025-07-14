@@ -5,7 +5,7 @@ export interface GameDbSearchParams {
   genres?: string[];
   platforms?: string[];
   tags?: string[];
-  dates?: string;
+  dates?: string[];
   developers?: string[];
   publishers?: string[];
   page?: number;

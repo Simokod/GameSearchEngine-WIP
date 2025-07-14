@@ -9,7 +9,10 @@ import { RawgApiClient } from "./clients/rawgApi";
 import { SteamSpyApiClient } from "./clients/stores/steamspyApi";
 import { GogApiClient } from "./clients/stores/gogApi";
 import { StoreGameInfo } from "./clients/stores/types";
-import { extractGameSearchParams } from "./clients/huggingfaceApi";
+import {
+  extractGameSearchParams,
+  analyzeSearchQuery,
+} from "./clients/llms.ts/huggingfaceApi";
 import { GameDbGameSummary, GameDbGameDetails } from "./clients/gamedb/types";
 
 class GamesService {
@@ -17,8 +20,12 @@ class GamesService {
   steamSpyApiClient = new SteamSpyApiClient();
   gogApiClient = new GogApiClient();
 
-  async initializeStoresCache() {
-    await this.rawgApiClient.initializeStoresCache();
+  constructor() {
+    this.initializeCache();
+  }
+
+  async initializeCache() {
+    await this.rawgApiClient.initializeCache();
   }
 
   private async getGameInfo(game: GameDbGameSummary): Promise<FullGameInfo> {
@@ -56,16 +63,46 @@ class GamesService {
 
   async searchGames(params: SearchQueryParams): Promise<SearchResponse> {
     console.log("Games search query:", params);
-    // 1. Extract structured info from LLM
-    const extracted = await extractGameSearchParams(params.query);
-    console.log("Extracted fields from HuggingFace:", extracted);
-    // 2. For now, just pass the original query and log the extracted fields
-    //    (mapping to RAWG params will be implemented next)
-    const searchResults = await this.rawgApiClient.searchGames({
-      query: params.query,
-      page: params.page,
-      pageSize: params.pageSize,
-    });
+    let searchResults: GameDbGameSummary[] = [];
+
+    const isDirectGameSearch = await analyzeSearchQuery(params.query);
+    console.log("Is direct game search:", isDirectGameSearch);
+    if (isDirectGameSearch.isDirectGameSearch) {
+      searchResults = await this.directGameSearch(params);
+    } else {
+      const extracted = await extractGameSearchParams(params.query);
+      console.log("Extracted fields from HuggingFace:", extracted);
+
+      // Convert extracted names to IDs using the cached mappings
+      const genreIds =
+        extracted.genres
+          ?.map((genre) => this.rawgApiClient.getGenreId(genre))
+          .filter((id) => id !== null) || [];
+      const platformIds =
+        extracted.platforms
+          ?.map((platform) => this.rawgApiClient.getPlatformId(platform))
+          .filter((id) => id !== null) || [];
+      const tagIds =
+        extracted.tags
+          ?.map((tag) => this.rawgApiClient.getTagId(tag))
+          .filter((id) => id !== null) || [];
+
+      console.log("Converted to IDs:", { genreIds, platformIds, tagIds });
+
+      searchResults = await this.rawgApiClient.searchGames({
+        query: "", // TODO: What to do about the query?
+        page: params.page,
+        pageSize: params.pageSize,
+        genres: genreIds.map((id) => String(id)),
+        platforms: platformIds.map((id) => String(id)),
+        tags: tagIds.map((id) => String(id)),
+        dates: extracted.dates,
+        developers: extracted.developers,
+        publishers: extracted.publishers,
+      });
+
+      console.log("Search results:", searchResults);
+    }
 
     const gamesWithStores = await Promise.all(
       searchResults.map(async (game: GameDbGameSummary) => {
@@ -76,6 +113,16 @@ class GamesService {
     return {
       games: gamesWithStores,
     };
+  }
+
+  async directGameSearch(
+    params: SearchQueryParams
+  ): Promise<GameDbGameSummary[]> {
+    return this.rawgApiClient.searchGames({
+      query: params.query,
+      page: params.page,
+      pageSize: params.pageSize,
+    });
   }
 
   async getMultiStoreGameInfo(

@@ -1,12 +1,17 @@
 export interface Platform {
-  platform: {
-    id: number;
-    name: string;
-    slug: string;
-  };
+  id: number;
+  name: string;
+  slug: string;
+  games_count: number;
 }
 
 export interface Genre {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface Tag {
   id: number;
   name: string;
   slug: string;
@@ -19,7 +24,7 @@ export interface RawgGame {
   released: string;
   background_image: string;
   rating: number;
-  platforms: Platform[];
+  platforms: { platform: Platform }[];
   genres: Genre[];
 }
 
