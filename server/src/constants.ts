@@ -6,3 +6,5 @@ export const STORE_NAMES = {
 };
 
 export type StoreName = (typeof STORE_NAMES)[keyof typeof STORE_NAMES];
+
+export const HUGGINGFACE_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";

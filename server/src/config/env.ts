@@ -7,12 +7,14 @@ class EnvConfig {
   readonly corsOrigin: string;
   readonly rawgApiKey: string;
   readonly defaultPageSize: number;
+  readonly huggingfaceApiToken: string;
 
   constructor() {
     this.port = Number(process.env.PORT) || 3000;
     this.corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
     this.rawgApiKey = process.env.RAWG_API_KEY || "";
     this.defaultPageSize = Number(process.env.DEFAULT_PAGE_SIZE) || 20;
+    this.huggingfaceApiToken = process.env.HUGGINGFACE_API_TOKEN || "";
 
     if (!this.rawgApiKey) {
       throw new Error(

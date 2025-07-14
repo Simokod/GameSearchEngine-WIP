@@ -15,6 +15,7 @@
   "license": "ISC",
   "description": "AI-based game search engine server",
   "dependencies": {
+    "@huggingface/inference": "^4.0.6",
     "@types/axios": "^0.9.36",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
