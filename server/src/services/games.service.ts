@@ -14,6 +14,7 @@ import {
   analyzeSearchQuery,
 } from "./clients/llms.ts/huggingfaceApi";
 import { GameDbGameSummary, GameDbGameDetails } from "./clients/gamedb/types";
+import { rerankingService } from "./reranking.service";
 
 class GamesService {
   rawgApiClient = new RawgApiClient();
@@ -70,6 +71,7 @@ class GamesService {
     if (isDirectGameSearch.isDirectGameSearch) {
       searchResults = await this.directGameSearch(params);
     } else {
+      // TODO: should inject the current DB's genres, platforms, tags, so that the LLM doesn't have to infer them
       const extracted = await extractGameSearchParams(params.query);
       console.log("Extracted fields from HuggingFace:", extracted);
 
@@ -89,10 +91,11 @@ class GamesService {
 
       console.log("Converted to IDs:", { genreIds, platformIds, tagIds });
 
-      searchResults = await this.rawgApiClient.searchGames({
+      // Get more results for reranking (50 instead of pageSize)
+      const expandedResults = await this.rawgApiClient.searchGames({
         query: "", // TODO: What to do about the query?
-        page: params.page,
-        pageSize: params.pageSize,
+        page: 1,
+        pageSize: 50,
         genres: genreIds.map((id) => String(id)),
         platforms: platformIds.map((id) => String(id)),
         tags: tagIds.map((id) => String(id)),
@@ -101,7 +104,16 @@ class GamesService {
         publishers: extracted.publishers,
       });
 
-      console.log("Search results:", searchResults);
+      console.log(`Got ${expandedResults.length} games for reranking`);
+
+      // Rerank using semantic similarity
+      searchResults = await rerankingService.rerankGames(
+        expandedResults,
+        params.query,
+        params.pageSize
+      );
+
+      console.log("Reranked search results:", searchResults);
     }
 
     const gamesWithStores = await Promise.all(
